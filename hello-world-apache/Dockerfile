@@ -1,4 +1,4 @@
-FROM apache
+FROM private.us.icr.io/isuarez-tests/test-hello-world-apache
 
 WORKDIR /var/www/html
 
