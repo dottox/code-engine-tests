@@ -31,13 +31,13 @@
   */
 
 // ========= Configuration =========
-const _dotenv = require('dotenv').config().parsed;
+require('dotenv').config();
 
-const dotenv = JSON.parse(_dotenv.CREDENTIALS);
+const dotenv = JSON.parse(process.env.CREDENTIALS);
 
 const CONFIG = {
   useHmac: false,
-  bucketName: _dotenv.BUCKETNAME,
+  bucketName: process.env.BUCKETNAME,
   serviceCredential: {
     "apikey": dotenv.apikey,
     "endpoints": dotenv.endpoints,
