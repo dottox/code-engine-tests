@@ -391,8 +391,8 @@ app.get('/:bucket/:name', async (req, res) => {
 
 
 // --- LISTENER ---
-app.listener = app.listen(8000, async () => {
+app.listener = app.listen(8080, async () => {
     s3 = await getS3(defaultEndpoint, CONFIG.serviceCredential);
     endpoints = await getEndpoints(CONFIG.serviceCredential.endpoints);
-    console.info('Server started on port 8000');
+    console.info('Server started on port 8080');
 });
