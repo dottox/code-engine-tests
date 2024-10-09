@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> <%= title %> </title>
+</head>
+<body>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .square {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #f55128;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <h1 style="margin-bottom: 0;"> <%= title %> </h1>
+    <p> in: <%= bucketName %> </p>
+
+    <div class="square">
+        <div style="display: flex; width: 100%; justify-content: space-around; margin-bottom: 30px;">
+            <p style="display: inline; margin: 0; font-size: large; font-weight: bold;"> Nombre </p>
+            <p style="display: inline; margin: 0; font-size: large; font-weight: bold;"> Tamaño </p>
+        </div>
+        <% for (let i = 0; i < items.length; i++) { %>
+            <div style="display: flex; width: 100%; justify-content: space-between; margin-bottom: 20px;">
+                <p style="display: inline; margin: 0;"> <%= items[i].Key %> </p>
+                <p style="display: inline; margin: 0;"> <%= items[i].Size %> </p>
+            </div>
+            <% } %>
+        </ul>
+        
+        <form action="/delete" method="post" enctype="application/x-www-form-urlencoded">
+            <label for="imageName">Image Name:</label>
+            <input type="text" id="imageName" name="name" required>
+            <br>
+            <br>
+            <button type="submit">Delete</button>
+        </form>
+        <a href="/" style="display: inline-block; text-align: center; width: 100%; margin-top: 10px;">Go back</a>
+    </div>
+</body>
+</html>
