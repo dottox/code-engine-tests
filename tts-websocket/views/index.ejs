@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech IBM</title>
+</head>
+<body>
+
+    <script>
+    // Global variables
+    var messages = '';
+    var audioStream = [];
+    var access_token = '';
+    var websocket;
+    var wsURI;
+    
+    // Initialize the WebSocket connection
+    function initializeWebSocket() {
+        websocket = new WebSocket(wsURI);
+        
+        // onmessage function allows you to receive messages from the server
+        websocket.onmessage = (evt) => {
+            if (typeof evt.data == "string") {
+                messages += evt.data;
+            } else {
+                console.log('Received ' + evt.data.size + ' binary bytes');
+                audioStream.push(evt.data);
+            }
+        };
+
+        // onclose function allows you to know when the connection has been closed
+        // we edit the HTML to display the audio player and download link
+        websocket.onclose = (evt) => {
+            console.log('Connection closed');
+            console.log(audioStream);
+            console.log(messages);
+
+            document.getElementById('loadingContainer').setAttribute('hidden', 'true');
+
+            if (audioStream.length === 0) {
+                alert('No audio data received');
+                return;
+            }
+            
+            var audioBlob = new Blob(audioStream, { type: 'audio/ogg' });
+            var audioUrl = URL.createObjectURL(audioBlob);
+
+            // Clear previous audio elements and download links
+            document.getElementById('audioContainer').innerHTML = '';
+            document.getElementById('downloadContainer').innerHTML = '';
+
+            // Create a new audio element
+            var newAudioElement = document.createElement('audio');
+            newAudioElement.controls = true;
+            newAudioElement.src = audioUrl;
+            document.getElementById('audioContainer').appendChild(newAudioElement);
+
+            // Create a link to download the audio file
+            var downloadLink = document.createElement('a');
+            downloadLink.href = audioUrl;
+            downloadLink.download = 'audio.ogg';
+            downloadLink.textContent = 'Download Audio';
+            document.getElementById('downloadContainer').appendChild(downloadLink);
+        };
+
+        // onerror function allows you to know when an error occurs
+        websocket.onerror = (evt) => {
+            console.log('Error: ' + evt.data);
+        };
+    }
+
+    // Function to send a message to the server
+    // Only called when we hit the 'Play' button
+    function play() {
+
+        // Retrieve the values from the input fields
+        var accessToken = document.getElementById('token').value;
+        var instanceURL = document.getElementById('instanceURL').value;
+        var voice = document.getElementById('voice').value;
+        var userText = document.getElementById('text').value;
+
+        // Check if all the required fields are filled
+        if (!accessToken || !instanceURL || !voice || !userText) {
+            alert('Please enter all the required fields');
+            return;
+        }
+
+        // Remove 'https://' from the instance URL, we need to use 'wss://' instead
+        var instanceURL = instanceURL.split('//')[1];
+
+        // Construct the WebSocket URI
+        wsURI = 'wss://' 
+            + instanceURL
+            + '/v1/synthesize'
+            + '?access_token=' + accessToken
+            + '&voice=' + voice;
+
+        // Clear the messages and audioStream arrays
+        audioStream = [];
+        messages = '';
+
+        // Initialize the WebSocket connection if not initialized before
+        if (!websocket || websocket.readyState === WebSocket.CLOSED) {
+            initializeWebSocket();
+        }
+
+        // Function to send a message to the server, this is called when initializing the WebSocket and if the connection is already open
+        function sendMessage() {
+            document.getElementById('loadingContainer').removeAttribute('hidden');
+
+            var message = {
+                text: userText,
+                accept: 'audio/ogg'
+            };
+
+            if (websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify(message));
+            } else {
+                websocket.onopen = () => {
+                    websocket.send(JSON.stringify(message));
+                };
+            }
+        }
+
+        sendMessage();
+    }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #4a90e2;
+        }
+
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #357ab8;
+        }
+
+        #audioContainer,
+        #downloadContainer {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+    </style>
+
+    <h1 style="text-align: center; margin-bottom: 0;">Text to Speech using IBM services</h1>
+    <h3 style="text-align: center;">This is a websocket test</h3>
+    <form>
+        <label for="text">Access Token:</label>
+        <input type="text" id="token" placeholder="Enter text">
+        <br>
+
+        <label for="text">TTS Instance URL:</label>
+        <input type="text" id="instanceURL" placeholder="Enter text">
+        <br>
+
+
+        <label for="text">Voice:</label>
+        <select id="voice">
+            <option value="es-LA_DanielaExpressive">LA_DanielaExpressive</option>
+            <option value="es-LA_SofiaV3Voice">LA_Sofia</option>
+            <option value="es-ES_EnriqueV3Voice">ES_Enrique</option>
+            <option value="en-US_EmmaExpressive">US_EmmaExpressive</option>
+        </select>
+        <br>
+
+        <label for="text">Text:</label>
+        <input type="text" id="text" placeholder="Enter text">
+        <br>
+
+        <button type="button" onclick="play()">Play</button>
+    </form>
+
+    <div style="text-align: center;" id="loadingContainer" hidden>Loading...</div>
+    <div id="audioContainer"></div>
+    <div id="downloadContainer"></div>
+</body>
+</html>
